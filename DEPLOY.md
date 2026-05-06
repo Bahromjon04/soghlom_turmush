@@ -1,12 +1,12 @@
 # Sog'lom Turmush deploy qo'llanmasi
 
-Bu loyiha uchta hostingga moslab tayyorlandi: Render, Railway va Fly.io.
+Bu loyiha uchta hostingga moslab tayyorlandi: Render, Railway va Koyeb.
 
 Muhim billing eslatma:
 
 - Render: free web service mavjud, ishlatilmaganda uxlab qolishi mumkin.
 - Railway: free/trial kredit asosida ishlaydi, resurs tugasa to'lov so'rashi mumkin.
-- Fly.io: yangi accountlarda odatda pay-as-you-go, karta talab qilishi mumkin.
+- Koyeb: bitta free web service beradi, lekin account validatsiyasi/billing tekshiruvi so'ralishi mumkin.
 
 ## 0. Umumiy tayyorgarlik
 
@@ -92,37 +92,57 @@ railway init
 railway up
 ```
 
-## 3. Fly.io
+## 3. Koyeb
 
-Fly.io Dockerfile orqali deploy qiladi. Bu repo ichida `Dockerfile` va `fly.toml` tayyor.
+Koyeb GitHub orqali Django app deploy qila oladi. Bu loyiha `start.sh` orqali ishga tushadi.
 
-1. Fly CLI o'rnating va login qiling.
-2. Birinchi marta app yaratish:
-
-```bash
-fly auth login
-fly launch --no-deploy
-```
-
-3. `fly.toml` ichidagi `app = "soghlom-turmush"` nomi band bo'lsa, boshqa unikal nom qo'ying.
-4. Secret key qo'ying:
-
-```bash
-fly secrets set DJANGO_SECRET_KEY="<secret>"
-```
-
-5. Deploy qiling:
-
-```bash
-fly deploy
-```
-
-Sayt URL'i:
+1. Koyeb dashboard -> Create Web Service.
+2. GitHub repository'ni tanlang:
 
 ```text
-https://<app-name>.fly.dev
+Bahromjon04/soghlom_turmush
 ```
+
+3. Branch:
+
+```text
+main
+```
+
+4. Builder/Runtime qismida Python yoki Docker tanlansa ham loyiha ishlashi mumkin. Oddiyroq yo'l:
+
+```text
+Build command:
+pip install -r requirements.txt && python manage.py collectstatic --no-input
+```
+
+```text
+Run command:
+bash start.sh
+```
+
+5. Port:
+
+```text
+8000
+```
+
+6. Environment variables:
+
+```text
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=.koyeb.app
+DJANGO_CSRF_TRUSTED_ORIGINS=https://*.koyeb.app
+DJANGO_SESSION_COOKIE_SECURE=True
+DJANGO_CSRF_COOKIE_SECURE=True
+DJANGO_SEED_DATA=True
+DJANGO_SECRET_KEY=<secret>
+PORT=8000
+```
+
+7. Instance tanlashda free instance tanlang.
+8. Deploy tugagach, Koyeb `*.koyeb.app` domen beradi.
 
 ## Eslatma
 
-Render va Railway GitHub orqali deploy qilishga qulay. Fly.io CLI/Docker orqali ancha nazorat beradi. Uchala variant ham demo va portfolio uchun yaxshi. Production uchun doimiy database, maxfiy sozlamalar, custom domain va backup kerak bo'ladi.
+Render, Railway va Koyeb GitHub orqali deploy qilishga qulay. Uchala variant ham demo va portfolio uchun yaxshi. Production uchun doimiy database, maxfiy sozlamalar, custom domain va backup kerak bo'ladi.
