@@ -1,0 +1,165 @@
+{% extends 'core/base.html' %}
+{% block title %}Tavsiyalar – Sog'lom Turmush{% endblock %}
+{% block nav_recs %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Bugungi tavsiyalar</h4>
+
+<!-- Calorie status -->
+<div class="card mb-4 {% if remaining_calories > 0 %}border-success{% else %}border-danger{% endif %}">
+  <div class="card-body">
+    <div class="row align-items-center">
+      <div class="col-md-6">
+        <h6 class="fw-bold mb-1">Bugungi holat</h6>
+        <p class="mb-0 text-muted small">
+          Iste'mol qildi: <strong>{{ total_today_cals|floatformat:0 }} kcal</strong> |
+          Maqsad: <strong>{{ profile.daily_calorie_goal }} kcal</strong>
+        </p>
+      </div>
+      <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        {% if remaining_calories > 0 %}
+        <span class="badge bg-success fs-6">{{ remaining_calories|floatformat:0 }} kcal qoldi</span>
+        {% else %}
+        <span class="badge bg-danger fs-6">{{ remaining_calories|floatformat:0 }} kcal oshib ketdi</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Meal recommendations -->
+{% if meal_recommendations %}
+<div class="card mb-4">
+  <div class="card-header bg-transparent fw-bold">
+    <i class="bi bi-clock text-primary me-2"></i>Qolgan ovqatlar uchun tavsiyalar
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for meal_type, meal_data in meal_recommendations.items %}
+      <div class="col-md-6">
+        <h6 class="fw-semibold text-muted mb-2">{{ meal_data.label }}</h6>
+        {% for food in meal_data.foods %}
+        <div class="d-flex align-items-center p-3 rounded mb-2" style="background:#f8f9fa;">
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ food.name }}</div>
+            <div class="text-muted small">{{ food.calories_per_100g }} kcal/100g | Porsiya: {{ food.default_portion_g }}g ({{ food.calories_per_portion }} kcal)</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-danger like-btn {% if food.pk in liked_ids %}liked{% endif %}"
+                    onclick="toggleLike({{ food.pk }}, this)">
+              <i class="bi bi-heart{% if food.pk in liked_ids %}-fill{% endif %}"></i>
+            </button>
+            <a href="{% url 'food_detail' food.pk %}" class="btn btn-sm btn-outline-success">Ko'r</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Daily menu suggestion -->
+<div class="card mb-4">
+  <div class="card-header bg-transparent fw-bold">
+    <i class="bi bi-calendar-check text-success me-2"></i>Bugungi menyu namunasi
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for meal_type, meal_data in daily_menu.items %}
+      <div class="col-md-6 col-lg-3">
+        <div class="card border-0 h-100" style="background:#f0fdf4;">
+          <div class="card-body text-center">
+            <div class="fs-2 mb-2">
+              {% if meal_type == 'breakfast' %}🌅
+              {% elif meal_type == 'lunch' %}🌞
+              {% elif meal_type == 'dinner' %}🌙
+              {% else %}🍎{% endif %}
+            </div>
+            <div class="text-muted small fw-semibold mb-2">{{ meal_data.label }}</div>
+            <div class="fw-bold">{{ meal_data.food.name }}</div>
+            <div class="text-muted small mt-1">
+              {{ meal_data.food.calories_per_portion }} kcal
+              ({{ meal_data.food.default_portion_g }}g)
+            </div>
+            <a href="{% url 'food_detail' meal_data.food.pk %}" class="btn btn-sm btn-outline-success mt-2">Batafsil</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Liked foods -->
+{% if liked_foods %}
+<div class="card mb-4">
+  <div class="card-header bg-transparent fw-bold">
+    <i class="bi bi-heart-fill text-danger me-2"></i>Sizning sevimli taomlaringiz (bugun yemaganlar)
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for food in liked_foods %}
+      <div class="col-md-4">
+        <div class="d-flex align-items-center p-3 rounded border">
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ food.name }}</div>
+            <div class="text-muted small">{{ food.calories_per_portion }} kcal / porsiya</div>
+          </div>
+          <a href="{% url 'food_detail' food.pk %}" class="btn btn-sm btn-outline-success">Ko'r</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Variety foods -->
+{% if variety_foods %}
+<div class="card">
+  <div class="card-header bg-transparent fw-bold">
+    <i class="bi bi-shuffle text-info me-2"></i>Bu hafta sinab ko'rmagan taomlar
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {% for food in variety_foods %}
+      <div class="col-sm-6 col-lg-4">
+        <div class="d-flex align-items-center p-3 rounded" style="background:#f0f8ff;">
+          <div class="flex-grow-1">
+            <div class="fw-semibold">{{ food.name }}</div>
+            <div class="text-muted small">{{ food.calories_per_100g }} kcal/100g | {{ food.get_meal_type_display }}</div>
+          </div>
+          <a href="{% url 'food_detail' food.pk %}" class="btn btn-sm btn-outline-info">Ko'r</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleLike(foodId, btn) {
+  fetch(`/taomlar/${foodId}/like/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')}
+  }).then(r => r.json()).then(data => {
+    const icon = btn.querySelector('i');
+    if (data.liked) {
+      icon.className = 'bi bi-heart-fill';
+      btn.classList.add('liked');
+      btn.style.color = '#e74c3c';
+    } else {
+      icon.className = 'bi bi-heart';
+      btn.classList.remove('liked');
+      btn.style.color = '';
+    }
+  });
+}
+document.querySelectorAll('.like-btn.liked').forEach(b => b.style.color = '#e74c3c');
+</script>
+{% endblock %}

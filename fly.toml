@@ -1,0 +1,26 @@
+app = "soghlom-turmush"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  DJANGO_DEBUG = "False"
+  DJANGO_ALLOWED_HOSTS = ".fly.dev"
+  DJANGO_CSRF_TRUSTED_ORIGINS = "https://*.fly.dev"
+  DJANGO_SESSION_COOKIE_SECURE = "True"
+  DJANGO_CSRF_COOKIE_SECURE = "True"
+  DJANGO_SEED_DATA = "True"
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

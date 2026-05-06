@@ -1,0 +1,160 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ food.name }} – Sog'lom Turmush{% endblock %}
+{% block nav_foods %}active{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="mb-3">
+      <a href="{% url 'food_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Orqaga
+      </a>
+    </div>
+    <div class="card">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h3 class="fw-bold mb-1">{{ food.name }}</h3>
+            <div>
+              <span class="badge bg-success me-2">{{ food.get_meal_type_display }}</span>
+              <span class="badge bg-secondary">{{ food.get_region_display }}</span>
+            </div>
+          </div>
+          <button class="btn like-btn {% if liked %}liked text-danger{% endif %} border" 
+                  onclick="toggleLike({{ food.pk }}, this)" id="likeBtn">
+            <i class="bi bi-heart{% if liked %}-fill{% endif %} me-1"></i>
+            <span id="likeCount">{{ liked_count }}</span>
+          </button>
+        </div>
+
+        <!-- Nutrition table -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="card border-0 text-center" style="background:linear-gradient(135deg,#ff6b6b,#ee5a24);">
+              <div class="card-body text-white py-3">
+                <div class="fs-3 fw-bold">{{ food.calories_per_100g }}</div>
+                <div class="small">kcal / 100g</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 text-center" style="background:linear-gradient(135deg,#3498db,#2980b9);">
+              <div class="card-body text-white py-3">
+                <div class="fs-3 fw-bold">{{ food.protein_per_100g }}g</div>
+                <div class="small">Oqsil</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 text-center" style="background:linear-gradient(135deg,#f39c12,#e67e22);">
+              <div class="card-body text-white py-3">
+                <div class="fs-3 fw-bold">{{ food.fat_per_100g }}g</div>
+                <div class="small">Yog'</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="card border-0 text-center" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);">
+              <div class="card-body text-white py-3">
+                <div class="fs-3 fw-bold">{{ food.carbs_per_100g }}g</div>
+                <div class="small">Uglevod</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Portion calculator -->
+        <div class="card bg-light mb-4">
+          <div class="card-body">
+            <h6 class="fw-bold mb-3"><i class="bi bi-calculator me-2"></i>Porsiya kalkulyatori</h6>
+            <div class="row align-items-center g-3">
+              <div class="col-md-4">
+                <label class="form-label small">Miqdor (gramm)</label>
+                <input type="number" class="form-control" id="portionAmount" value="{{ food.default_portion_g }}" min="1" max="2000">
+              </div>
+              <div class="col-md-8">
+                <div class="row g-2 mt-1" id="calcResult">
+                  <div class="col-3 text-center">
+                    <div class="fw-bold text-danger" id="calcCal">{{ food.calories_per_portion }}</div>
+                    <div class="text-muted" style="font-size:11px;">kcal</div>
+                  </div>
+                  <div class="col-3 text-center">
+                    <div class="fw-bold text-primary" id="calcPro">–</div>
+                    <div class="text-muted" style="font-size:11px;">Oqsil g</div>
+                  </div>
+                  <div class="col-3 text-center">
+                    <div class="fw-bold text-warning" id="calcFat">–</div>
+                    <div class="text-muted" style="font-size:11px;">Yog' g</div>
+                  </div>
+                  <div class="col-3 text-center">
+                    <div class="fw-bold" style="color:#9b59b6;" id="calcCarb">–</div>
+                    <div class="text-muted" style="font-size:11px;">Uglevod g</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% if food.description %}
+        <div class="mb-3">
+          <h6 class="fw-bold">Tavsif</h6>
+          <p class="text-muted">{{ food.description }}</p>
+        </div>
+        {% endif %}
+
+        <div class="d-flex gap-3 mt-4">
+          <a href="{% url 'diary' %}" class="btn btn-success">
+            <i class="bi bi-journal-plus me-2"></i>Jurnalga qo'shish
+          </a>
+          {% if food.recipe_url %}
+          <a href="{{ food.recipe_url }}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-link-45deg me-2"></i>Retsept
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const cal100 = {{ food.calories_per_100g }};
+const pro100 = {{ food.protein_per_100g }};
+const fat100 = {{ food.fat_per_100g }};
+const carb100 = {{ food.carbs_per_100g }};
+
+document.getElementById('portionAmount').addEventListener('input', function() {
+  const g = parseFloat(this.value) || 0;
+  document.getElementById('calcCal').textContent = (cal100 * g / 100).toFixed(0);
+  document.getElementById('calcPro').textContent = (pro100 * g / 100).toFixed(1);
+  document.getElementById('calcFat').textContent = (fat100 * g / 100).toFixed(1);
+  document.getElementById('calcCarb').textContent = (carb100 * g / 100).toFixed(1);
+});
+// Init
+document.getElementById('portionAmount').dispatchEvent(new Event('input'));
+
+function toggleLike(foodId, btn) {
+  fetch(`/taomlar/${foodId}/like/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')}
+  }).then(r => r.json()).then(data => {
+    const icon = btn.querySelector('i');
+    const count = document.getElementById('likeCount');
+    if (data.liked) {
+      icon.className = 'bi bi-heart-fill me-1';
+      btn.classList.add('liked');
+      btn.style.color = '#e74c3c';
+    } else {
+      icon.className = 'bi bi-heart me-1';
+      btn.classList.remove('liked');
+      btn.style.color = '';
+    }
+    count.textContent = data.count;
+  });
+}
+{% if liked %}document.getElementById('likeBtn').style.color='#e74c3c';{% endif %}
+</script>
+{% endblock %}

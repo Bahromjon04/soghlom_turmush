@@ -1,0 +1,158 @@
+{% extends 'core/base.html' %}
+{% block title %}Jismoniy faollik – Sog'lom Turmush{% endblock %}
+{% block nav_activity %}active{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4"><i class="bi bi-lightning-fill text-warning me-2"></i>Jismoniy faollik</h4>
+
+<div class="row g-4">
+  <!-- Add activity form -->
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header bg-warning text-dark fw-bold">
+        <i class="bi bi-plus-circle me-2"></i>Faollik qo'shish
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Faoliyat turi</label>
+            {{ form.activity_type }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Davomiyligi (daqiqa)</label>
+            {{ form.duration_minutes }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Yoqilgan kaloriya</label>
+            {{ form.calories_burned }}
+            <div class="form-text" id="calHint">Faoliyat turini tanlaganingizdan so'ng taxminiy miqdor ko'rinadi</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Sana</label>
+            {{ form.date }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Eslatma</label>
+            {{ form.notes }}
+          </div>
+          <button type="submit" class="btn btn-warning fw-semibold w-100">
+            <i class="bi bi-plus-lg me-2"></i>Qo'shish
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Calorie reference card -->
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-info-circle text-info me-2"></i>Taxminiy kaloriya sarfi</h6>
+        <div class="table-responsive">
+          <table class="table table-sm small mb-0">
+            <thead class="table-light">
+              <tr><th>Faoliyat</th><th>kcal/daqiqa</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Yurish</td><td>~4 kcal</td></tr>
+              <tr><td>Yugurish</td><td>~10 kcal</td></tr>
+              <tr><td>Velosiped</td><td>~8 kcal</td></tr>
+              <tr><td>Suzish</td><td>~9 kcal</td></tr>
+              <tr><td>Sport zali</td><td>~7 kcal</td></tr>
+              <tr><td>Futbol</td><td>~8 kcal</td></tr>
+              <tr><td>Yoga</td><td>~3 kcal</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity history -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-transparent fw-bold">
+        <i class="bi bi-clock-history text-secondary me-2"></i>Faollik tarixi (oxirgi 20 ta)
+      </div>
+      <div class="card-body p-0">
+        {% if activities %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Sana</th>
+                <th>Faoliyat</th>
+                <th>Davomiyligi</th>
+                <th>Kaloriya</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for act in activities %}
+              <tr>
+                <td class="small">{{ act.date|date:"d.m.Y" }}</td>
+                <td class="fw-semibold small">
+                  {% if act.activity_type == 'walking' %}🚶
+                  {% elif act.activity_type == 'running' %}🏃
+                  {% elif act.activity_type == 'cycling' %}🚴
+                  {% elif act.activity_type == 'swimming' %}🏊
+                  {% elif act.activity_type == 'gym' %}🏋️
+                  {% elif act.activity_type == 'football' %}⚽
+                  {% elif act.activity_type == 'basketball' %}🏀
+                  {% elif act.activity_type == 'yoga' %}🧘
+                  {% else %}💪{% endif %}
+                  {{ act.get_activity_type_display }}
+                </td>
+                <td class="small">{{ act.duration_minutes }} daq.</td>
+                <td><span class="badge bg-danger">-{{ act.calories_burned }} kcal</span></td>
+                <td>
+                  <a href="{% url 'delete_activity' act.pk %}" class="btn btn-sm btn-outline-danger"
+                     onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-activity fs-1 d-block mb-3"></i>
+          Hali faollik yozuvlari yo'q.<br>
+          Birinchi faolligingizni qo'shing!
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const calRates = {{ calorie_rates|safe }};
+const actSelect = document.querySelector('[name="activity_type"]');
+const durInput = document.querySelector('[name="duration_minutes"]');
+const calInput = document.querySelector('[name="calories_burned"]');
+const calHint = document.getElementById('calHint');
+
+function updateCalEstimate() {
+  const actType = actSelect ? actSelect.value : '';
+  const dur = parseInt(durInput ? durInput.value : 0) || 0;
+  const rate = calRates[actType] || 5;
+  const estimated = Math.round(rate * dur);
+  if (estimated > 0) {
+    calHint.textContent = `Taxminiy: ${estimated} kcal (${rate} kcal/daqiqa × ${dur} daqiqa)`;
+    if (calInput && !calInput.value) calInput.value = estimated;
+  }
+}
+
+if (actSelect) actSelect.addEventListener('change', updateCalEstimate);
+if (durInput) durInput.addEventListener('input', updateCalEstimate);
+if (actSelect) actSelect.addEventListener('change', function() {
+  if (calInput) calInput.value = '';
+  updateCalEstimate();
+  if (calInput) calInput.value = Math.round((calRates[this.value] || 5) * (parseInt(durInput.value) || 30));
+});
+</script>
+{% endblock %}

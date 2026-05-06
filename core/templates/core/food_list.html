@@ -1,0 +1,135 @@
+{% extends 'core/base.html' %}
+{% block title %}Taomlar bazasi – Sog'lom Turmush{% endblock %}
+{% block nav_foods %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h4 class="fw-bold mb-0"><i class="bi bi-egg-fried text-success me-2"></i>Mahalliy taomlar bazasi</h4>
+  <span class="badge bg-success fs-6">{{ foods.count }} ta taom</span>
+</div>
+
+<!-- Filter form -->
+<div class="card mb-4">
+  <div class="card-body">
+    <form method="get">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Qidirish</label>
+          {{ form.search }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Taom turi</label>
+          {{ form.meal_type }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Min kcal</label>
+          {{ form.cal_min }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Max kcal</label>
+          {{ form.cal_max }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Mintaqa</label>
+          {{ form.region }}
+        </div>
+        <div class="col-md-1 d-flex align-items-end">
+          <button type="submit" class="btn btn-success w-100">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Foods grid -->
+<div class="row g-3">
+  {% for food in foods %}
+  <div class="col-sm-6 col-lg-4">
+    <div class="card food-card h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h6 class="fw-bold mb-0">{{ food.name }}</h6>
+          <button class="btn btn-sm p-0 like-btn {% if food.pk in liked_ids %}liked{% endif %}" 
+                  onclick="toggleLike({{ food.pk }}, this)" title="Like">
+            <i class="bi bi-heart{% if food.pk in liked_ids %}-fill{% endif %} fs-5"></i>
+          </button>
+        </div>
+        <div class="mb-2">
+          <span class="badge bg-light text-dark me-1">
+            {{ food.get_meal_type_display }}
+          </span>
+          <span class="badge bg-light text-secondary">{{ food.get_region_display }}</span>
+        </div>
+        <div class="row g-1 mb-3">
+          <div class="col-6">
+            <div class="p-2 rounded text-center" style="background:#fdecea;">
+              <div class="fw-bold text-danger">{{ food.calories_per_100g }}</div>
+              <div style="font-size:10px;" class="text-muted">kcal/100g</div>
+            </div>
+          </div>
+          <div class="col-2">
+            <div class="p-2 rounded text-center" style="background:#ebf5fb;">
+              <div class="fw-bold text-primary small">{{ food.protein_per_100g }}</div>
+              <div style="font-size:10px;" class="text-muted">P</div>
+            </div>
+          </div>
+          <div class="col-2">
+            <div class="p-2 rounded text-center" style="background:#fef9e7;">
+              <div class="fw-bold text-warning small">{{ food.fat_per_100g }}</div>
+              <div style="font-size:10px;" class="text-muted">Y</div>
+            </div>
+          </div>
+          <div class="col-2">
+            <div class="p-2 rounded text-center" style="background:#f5eef8;">
+              <div class="fw-bold small" style="color:#9b59b6;">{{ food.carbs_per_100g }}</div>
+              <div style="font-size:10px;" class="text-muted">U</div>
+            </div>
+          </div>
+        </div>
+        {% if food.description %}
+        <p class="text-muted small mb-2" style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">
+          {{ food.description }}
+        </p>
+        {% endif %}
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Porsiya: {{ food.default_portion_g }}g ({{ food.calories_per_portion }} kcal)</span>
+          <a href="{% url 'food_detail' food.pk %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-info-circle me-1"></i>Batafsil
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5 text-muted">
+    <i class="bi bi-search fs-1 d-block mb-3"></i>
+    Taom topilmadi. Filtrlash shartlarini o'zgartiring.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleLike(foodId, btn) {
+  fetch(`/taomlar/${foodId}/like/`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken')}
+  }).then(r => r.json()).then(data => {
+    const icon = btn.querySelector('i');
+    if (data.liked) {
+      icon.className = 'bi bi-heart-fill fs-5';
+      btn.classList.add('liked');
+      btn.style.color = '#e74c3c';
+    } else {
+      icon.className = 'bi bi-heart fs-5';
+      btn.classList.remove('liked');
+      btn.style.color = '';
+    }
+  });
+}
+document.querySelectorAll('.like-btn.liked').forEach(b => b.style.color = '#e74c3c');
+</script>
+{% endblock %}

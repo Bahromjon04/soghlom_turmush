@@ -1,0 +1,248 @@
+{% extends 'core/base.html' %}
+{% block title %}Kundalik – Sog'lom Turmush{% endblock %}
+{% block nav_diary %}active{% endblock %}
+
+{% block content %}
+<!-- Date navigation -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <a href="{% url 'diary_date' prev_date %}" class="btn btn-outline-secondary">
+    <i class="bi bi-chevron-left"></i> Oldingi kun
+  </a>
+  <div class="text-center">
+    <h5 class="fw-bold mb-0">
+      {% if selected_date == today %}
+        <span class="badge bg-success me-2">Bugun</span>
+      {% endif %}
+      {{ selected_date|date:"d-M, Y" }}
+    </h5>
+    <div class="d-flex gap-1 mt-2">
+      {% for wd in week_dates %}
+      <a href="{% url 'diary_date' wd %}" 
+         class="btn btn-sm {% if wd == selected_date %}btn-success{% elif wd == today %}btn-outline-success{% else %}btn-outline-light text-dark{% endif %}"
+         style="width:36px; padding:2px;">
+        {{ wd|date:"d" }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  <a href="{% url 'diary_date' next_date %}" class="btn btn-outline-secondary">
+    Keyingi kun <i class="bi bi-chevron-right"></i>
+  </a>
+</div>
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card text-center stat-card border-0" style="border-left:4px solid #e74c3c !important;">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-4 text-danger">{{ net_calories|floatformat:0 }}</div>
+        <div class="text-muted small">Iste'mol kcal</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center stat-card border-0" style="border-left:4px solid #2ecc71 !important;">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-4 text-success">{{ remaining_calories|floatformat:0 }}</div>
+        <div class="text-muted small">Qoldi kcal</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center stat-card border-0" style="border-left:4px solid #f39c12 !important;">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-4 text-warning">{{ burned_calories }}</div>
+        <div class="text-muted small">Yoqildi kcal</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card text-center stat-card border-0" style="border-left:4px solid #3498db !important;">
+      <div class="card-body py-3">
+        <div class="fw-bold fs-4 text-primary">{{ profile.daily_calorie_goal }}</div>
+        <div class="text-muted small">Maqsad kcal</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between mb-1">
+      <small class="fw-semibold">Kaloriya: {{ net_calories|floatformat:0 }} / {{ profile.daily_calorie_goal }}</small>
+      <small>{{ cal_percent }}%</small>
+    </div>
+    <div class="progress mb-3" style="height:14px;">
+      <div class="progress-bar {% if cal_percent > 100 %}bg-danger{% elif cal_percent > 85 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ cal_percent }}%"></div>
+    </div>
+    <div class="row g-2">
+      <div class="col-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary">P</span>
+          <span class="small">{{ total_protein|floatformat:1 }}g oqsil</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-warning">Y</span>
+          <span class="small">{{ total_fat|floatformat:1 }}g yog'</span>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-purple" style="background:#9b59b6;">U</span>
+          <span class="small">{{ total_carbs|floatformat:1 }}g uglevod</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Meals -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header bg-transparent fw-bold">
+        <i class="bi bi-journal-check text-success me-2"></i>Ovqat jurnali
+      </div>
+      <div class="card-body">
+        {% for meal_type, meal_data in meals.items %}
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="fw-bold mb-0">
+              {% if meal_type == 'breakfast' %}<i class="bi bi-sunrise text-warning me-2"></i>
+              {% elif meal_type == 'lunch' %}<i class="bi bi-sun text-success me-2"></i>
+              {% elif meal_type == 'dinner' %}<i class="bi bi-moon-stars text-primary me-2"></i>
+              {% else %}<i class="bi bi-cookie text-secondary me-2"></i>{% endif %}
+              {{ meal_data.label }}
+            </h6>
+            <span class="badge bg-light text-dark">{{ meal_data.calories|floatformat:0 }} kcal</span>
+          </div>
+          {% if meal_data.entries %}
+          <div class="table-responsive">
+            <table class="table table-sm mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Taom</th>
+                  <th>Miqdor</th>
+                  <th>Kcal</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for entry in meal_data.entries %}
+                <tr>
+                  <td><a href="{% url 'food_detail' entry.food.pk %}" class="text-decoration-none">{{ entry.food.name }}</a></td>
+                  <td>{{ entry.amount_g }}g</td>
+                  <td class="fw-semibold text-danger">{{ entry.get_calories }}</td>
+                  <td>
+                    <a href="{% url 'delete_diary_entry' entry.pk %}" class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                      <i class="bi bi-trash"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-muted small mb-0 ps-3">Hali bo'sh</p>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Activities -->
+    {% if activities %}
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-lightning-fill text-warning me-2"></i>Jismoniy faollik</h6>
+        {% for act in activities %}
+        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+          <span class="small">{{ act.get_activity_type_display }}</span>
+          <span class="text-muted small">{{ act.duration_minutes }} daqiqa</span>
+          <span class="badge bg-danger">-{{ act.calories_burned }} kcal</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Add form -->
+  <div class="col-lg-5">
+    <div class="card sticky-top" style="top:80px;">
+      <div class="card-header bg-success text-white fw-bold">
+        <i class="bi bi-plus-circle me-2"></i>Ovqat qo'shish
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'add_diary_entry' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Taom</label>
+            {{ form.food }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Sana</label>
+            {{ form.date }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Ovqat vaqti</label>
+            {{ form.meal_type }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Miqdor (gramm)</label>
+            {{ form.amount_g }}
+            <div class="form-text">Standart porsiya: <span id="portionHint">–</span></div>
+          </div>
+          <button type="submit" class="btn btn-success w-100 fw-semibold">
+            <i class="bi bi-plus-lg me-2"></i>Jurnalga qo'shish
+          </button>
+        </form>
+        <hr>
+        <div class="d-flex align-items-center justify-content-between">
+          <span class="fw-semibold small">Suv: {{ water_obj.glasses }} stakan</span>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" onclick="updateWater('add')">💧 +1</button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="updateWater('remove')">−</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Food portion hint
+const foodSelect = document.querySelector('[name="food"]');
+const portionHint = document.getElementById('portionHint');
+const portions = {
+  {% for food in form.food.field.queryset %}
+  {{ food.pk }}: {{ food.default_portion_g }},
+  {% endfor %}
+};
+if (foodSelect) {
+  foodSelect.addEventListener('change', function() {
+    const p = portions[this.value];
+    portionHint.textContent = p ? p + ' g' : '–';
+    const amtInput = document.querySelector('[name="amount_g"]');
+    if (p && amtInput) amtInput.value = p;
+  });
+}
+
+function updateWater(action) {
+  fetch("{% url 'update_water' %}", {
+    method: 'POST',
+    headers: {'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'action=' + action
+  }).then(r => r.json()).then(data => {
+    location.reload();
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ro'yxatdan o'tish – Sog'lom Turmush</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: linear-gradient(135deg, #1a252f 0%, #2c3e50 50%, #27ae60 100%); min-height: 100vh; padding: 2rem 0; }
+    .register-card { border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .brand-icon { font-size: 2.5rem; color: #2ecc71; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card register-card">
+        <div class="card-body p-5">
+          <div class="text-center mb-4">
+            <div class="brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+            <h4 class="fw-bold mt-2">Ro'yxatdan o'tish</h4>
+            <p class="text-muted small">Sog'lom hayot uchun birinchi qadam</p>
+          </div>
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+          {% endif %}
+          <form method="post">
+            {% csrf_token %}
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Ism</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Familiya</label>
+                {{ form.last_name }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Parol</label>
+                {{ form.password1 }}
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Tasdiqlash</label>
+                {{ form.password2 }}
+              </div>
+              <div class="col-4">
+                <label class="form-label fw-semibold small">Yosh</label>
+                {{ form.age }}
+              </div>
+              <div class="col-4">
+                <label class="form-label fw-semibold small">Bo'y (sm)</label>
+                {{ form.height }}
+              </div>
+              <div class="col-4">
+                <label class="form-label fw-semibold small">Vazn (kg)</label>
+                {{ form.weight }}
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Jins</label>
+                {{ form.gender }}
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small">Maqsad</label>
+                {{ form.goal }}
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small">Faollik darajasi</label>
+                {{ form.activity_level }}
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success w-100 py-2 fw-semibold mt-4">
+              <i class="bi bi-check-circle me-2"></i>Ro'yxatdan o'tish
+            </button>
+          </form>
+          <div class="text-center mt-3">
+            <span class="text-muted small">Hisobingiz bormi? </span>
+            <a href="{% url 'login' %}" class="text-success fw-semibold small">Kirish</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

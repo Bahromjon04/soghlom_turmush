@@ -1,0 +1,131 @@
+{% extends 'core/base.html' %}
+{% block title %}Profil – Sog'lom Turmush{% endblock %}
+
+{% block content %}
+<h4 class="fw-bold mb-4"><i class="bi bi-person-circle text-success me-2"></i>Mening profilim</h4>
+
+<div class="row g-4">
+  <!-- Profile info -->
+  <div class="col-lg-4">
+    <div class="card text-center">
+      <div class="card-body p-4">
+        <div style="width:80px;height:80px;background:linear-gradient(135deg,#2ecc71,#27ae60);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+          <i class="bi bi-person-fill text-white fs-2"></i>
+        </div>
+        <h5 class="fw-bold">{{ user.get_full_name|default:user.email }}</h5>
+        <p class="text-muted small mb-3">{{ user.email }}</p>
+        <div class="row g-2 text-center">
+          <div class="col-4">
+            <div class="fw-bold text-success">{{ profile.age }}</div>
+            <div class="text-muted" style="font-size:11px;">Yosh</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-bold text-info">{{ profile.height }} sm</div>
+            <div class="text-muted" style="font-size:11px;">Bo'y</div>
+          </div>
+          <div class="col-4">
+            <div class="fw-bold text-warning">{{ profile.weight }} kg</div>
+            <div class="text-muted" style="font-size:11px;">Vazn</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calorie info -->
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-fire text-danger me-2"></i>Kaloriya hisob-kitobi</h6>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted small">BMR</span>
+          <span class="fw-semibold">{{ bmr }} kcal</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted small">TDEE</span>
+          <span class="fw-semibold">{{ tdee }} kcal</span>
+        </div>
+        <div class="d-flex justify-content-between py-2 border-bottom">
+          <span class="text-muted small">Maqsad</span>
+          <span class="fw-semibold text-success">{{ profile.daily_calorie_goal }} kcal</span>
+        </div>
+        <div class="d-flex justify-content-between py-2">
+          <span class="text-muted small">Niyat</span>
+          <span class="badge bg-success">{{ profile.get_goal_display }}</span>
+        </div>
+        {% if profile.target_weight %}
+        <div class="d-flex justify-content-between py-2 border-top">
+          <span class="text-muted small">Maqsad vazn</span>
+          <span class="fw-semibold">{{ profile.target_weight }} kg</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit form -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header bg-transparent fw-bold">
+        <i class="bi bi-pencil-square text-success me-2"></i>Profilni tahrirlash
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Ism</label>
+              {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Familiya</label>
+              {{ form.last_name }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Yosh</label>
+              {{ form.age }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Bo'y (sm)</label>
+              {{ form.height }}
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Vazn (kg)</label>
+              {{ form.weight }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Jins</label>
+              {{ form.gender }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Telefon</label>
+              {{ form.phone }}
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-semibold small">Faollik darajasi</label>
+              {{ form.activity_level }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Maqsad</label>
+              {{ form.goal }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Maqsad vazn (kg)</label>
+              {{ form.target_weight }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold small">Kunlik suv maqsadi (stakan)</label>
+              {{ form.daily_water_goal }}
+            </div>
+          </div>
+          <div class="alert alert-info small mt-3 mb-3">
+            <i class="bi bi-info-circle me-2"></i>
+            Profil saqlanganida kaloriya maqsadi avtomatik hisoblanadi (Mifflin-St Jeor formulasi).
+          </div>
+          <button type="submit" class="btn btn-success fw-semibold px-4">
+            <i class="bi bi-save me-2"></i>Saqlash
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
