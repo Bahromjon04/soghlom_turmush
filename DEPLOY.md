@@ -81,6 +81,8 @@ DJANGO_SEED_DATA=True
 
 5. Deploy tugagach, Railway public domain beradi. Odatda `*.up.railway.app` ko'rinishida bo'ladi.
 
+Eslatma: Railway uchun majburiy healthcheck o'chirilgan. Django app ishga tushgach public domain orqali qo'lda tekshiriladi.
+
 CLI orqali deploy qilish:
 
 ```bash
